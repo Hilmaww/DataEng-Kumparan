@@ -442,5 +442,7 @@ This section provides instructions on how to set up and run the Mage pipeline on
 
 2. Run your pipeline:
     ```bash
-    mage run pipeline kumparan
+    mage run pipeline etl_incremental
+
+    mage run pipeline etl_historical
     ```
