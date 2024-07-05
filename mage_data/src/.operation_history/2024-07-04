@@ -1,0 +1,2 @@
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "kumparan"}, "timestamp": 1720087460, "user": null}
+{"operation": "create", "resource": {"type": "pipeline", "uuid": "etl_historical"}, "timestamp": 1720088801, "user": null}

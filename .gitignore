@@ -1,0 +1,15 @@
+venv/
+__pycache__/
+.cache/
+.bash_history
+.bash_logout
+.bashrc
+.config/
+.file_version/
+.git/
+.ipython/
+.local/
+.ssh/
+.ssh_tunnel/
+.profile
+.file_versions/
