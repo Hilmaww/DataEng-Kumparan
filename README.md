@@ -376,3 +376,71 @@ def transform_data(df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
 ```
 **Explanation**: This function handles deletions by marking records as deleted and ensuring that deletions are reflected in the transformed data.
 
+## 9. Running the Mage Pipeline on Your Own Server/Host
+
+This section provides instructions on how to set up and run the Mage pipeline on your own server or host. Follow these steps to configure the necessary credentials and run the pipeline successfully.
+
+### Prerequisites
+
+1. Ensure you have Python installed on your system (Python 3.7 or later).
+2. Install Mage by following the instructions on the [Mage documentation](https://github.com/mage-ai/mage-ai).
+3. Set up PostgreSQL and BigQuery credentials.
+
+### Installation
+
+1. Clone the repository to your local machine:
+    ```bash
+    git clone https://github.com/Hilmaww/DataEng-Kumparan.git
+    cd DataEng-Kumparan
+    ```
+
+2. Install the required Python packages:
+    ```bash
+    pip install -r kumparan/requirements.txt
+    ```
+
+### Configuration
+
+1. **Credentials Configuration**
+
+   Update the PostgreSQL and BigQuery credentials in the `io_config.yaml` file:
+
+    ```yaml
+    # PostgresSQL
+    POSTGRES_CONNECT_TIMEOUT: 10
+    POSTGRES_DBNAME: postgres
+    POSTGRES_SCHEMA: public # Optional
+    POSTGRES_USER: postgres
+    POSTGRES_PASSWORD: telmat123
+    POSTGRES_HOST: 'your_postgresql_host'
+    POSTGRES_PORT: 5432
+    # Google
+    GOOGLE_SERVICE_ACC_KEY:
+      type: service_account
+      project_id: ID
+      private_key_id:KEY_ID
+      private_key: "-----BEGIN PRIVATE KEY-----\nKEY\n——END_PRIVATE_KEY"
+      client_email: for-kumparan@data-eng-428408.iam.gserviceaccount.com
+      auth_uri: "https://accounts.google.com/o/oauth2/auth"
+      token_uri: "https://accounts.google.com/o/oauth2/token"
+      auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
+      client_x509_cert_url: "https://www.googleapis.com/robot/v1/metadata/x509/your_service_account_email"
+    GOOGLE_SERVICE_ACC_KEY_FILEPATH: "/path/to/your/service/account/key.json"
+    GOOGLE_LOCATION: US # Optional
+    ```
+
+2. **Save `io_config.yaml`**
+
+   Ensure the `io_config.yaml` file is located in the root directory of your project.
+
+### Running the Pipeline
+
+1. Start the Mage server:
+    ```bash
+    mage start
+    ```
+
+2. Run your pipeline:
+    ```bash
+    mage run pipeline kumparan
+    ```
