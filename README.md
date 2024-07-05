@@ -102,50 +102,93 @@ The ETL pipeline is designed to run hourly, extracting data from PostgreSQL, tra
 
 ### Diagram
 ```plaintext
-      +-------------------+         +-------------------+
-      |                   |         |                   |
-      |   PostgreSQL DB   |         |  Google BigQuery  |
-      |                   |         |                   |
-      +-------------------+         +-------------------+
-               |                            |
-               |                            |
-               v                            v
-        +-------------+               +-------------+
-        |  Extract    |               |  Load       |
-        |  from       |               |  to         |
-        |  PostgreSQL |               |  BigQuery   |
-        +-------------+               +-------------+
-               |                            |
-               |                            |
-               v                            v
-        +----------------------------------------+
-        |                Mage Pipeline           |
-        +----------------------------------------+
-                          |
-                          |
-                          v
-                    +-------------+
-                    |  Schedule   |
-                    |  Every Hour |
-                    +-------------+
+        +-----------------------------------------------+
+        |                Mage Pipeline                  |
+        +-----------------------------------------------+
+               ^                                |
+               |                                |
+               | Extract from                   |  Load to
+               |   PostgreSQL                   v    BigQuery
+      +-------------------+              +-------------------+
+      |                   |   Transform  |                   |
+      |   PostgreSQL DB   |  ----------> |  Google BigQuery  |
+      |                   |   Process    |                   |
+      +-------------------+              +-------------------+
+
 ```
 
 ## 6. ETL Pipeline
 
-### ETL Process
-1. **Extract Data**: Extracts data from PostgreSQL, including recently updated articles and deleted articles.
-2. **Transform Data**: Applies transformations such as calculating word counts, title lengths, and breaking down timestamps into components. Handles deletions by marking records.
-3. **Load Data**: Loads the transformed data into BigQuery, ensuring data consistency and handling deletions.
+### ETL Pipeline Overview
+
+The ETL pipeline consists of two main processes:
+1. **Incremental ETL Pipeline**: Runs every hour to keep the data up-to-date.
+2. **Historical ETL Pipeline**: A one-time bulk load process to handle the initial load of historical data.
+
+### Diagrams
+
+#### Incremental ETL Pipeline
+```plaintext
+      +-------------------+        
+      |                   |        
+      |   PostgreSQL DB   |        
+      |                   |        
+      +-------------------+        
+               |                    
+               v                    
+        +-----------------+         
+        | Extract         |         
+        | recent updates  |         
+        +-----------------+         
+               |                    
+               v                    
+        +-----------------+         
+        | Transform       |         
+        | data and handle |         
+        | deletions       |         
+        +-----------------+         
+               |                    
+               v                    
+        +-----------------+         
+        | Load            |         
+        | to BigQuery     |         
+        +-----------------+         
+```
+
+#### Historical ETL Pipeline
+```plaintext
+      +-------------------+        
+      |                   |        
+      |   PostgreSQL DB   |        
+      |                   |        
+      +-------------------+        
+               |                    
+               v                    
+        +-----------------+         
+        | Extract         |         
+        | all data        |         
+        +-----------------+         
+               |                    
+               v                    
+        +-----------------+         
+        | Transform       |         
+        | data            |         
+        +-----------------+         
+               |                    
+               v                    
+        +-----------------+         
+        | Load            |         
+        | to BigQuery     |         
+        +-----------------+         
+```
 
 ## 7. Code
 
 ### Extract Data
 #### Extract Data from PostgreSQL
+**Code: extract_from_postgres**
 ```python
-from mage_ai.data_preparation.decorators import extractor
-import pandas as pd
-from mage_ai.io.postgres import Postgres
-
+# Extracts data from PostgreSQL
 @extractor
 def extract_from_postgres():
     query = """
@@ -159,28 +202,22 @@ def extract_from_postgres():
         df = loader.load(query)
     return df
 ```
+**Explanation**: This function extracts recent updates and deletions from the PostgreSQL database.
 
 ### Transform Data
 #### Transform Data and Calculate Derived Metrics
+**Code: transform_data**
 ```python
-from mage_ai.data_preparation.decorators import transformer
-import pandas as pd
-from collections import Counter
-
-def word_count_dict(text):
-    if not text:
-        return {}
-    words = text.split()
-    word_counts = Counter(words)
-    return dict(word_counts)
-
+# Transforms data, calculates word counts, and prepares data for loading
 @transformer
 def transform_data(df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
+    # Handle deletions
     df['is_deleted'] = df['deleted_at'].notnull()
     
     df['word_count'] = df.apply(lambda row: len(row['content'].split()) if not row['is_deleted'] else 0, axis=1)
     df['title_length'] = df.apply(lambda row: len(row['title']) if not row['is_deleted'] else 0, axis=1)
 
+    # Extracting date parts
     df['created_year'] = df['created_at'].dt.year
     df['created_month'] = df['created_at'].dt.month
     df['created_day'] = df['created_at'].dt.day
@@ -208,13 +245,13 @@ def transform_data(df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
 
     return df, word_counts_df
 ```
+**Explanation**: This function transforms the data by calculating word counts, title lengths, and extracting date parts. It also handles deletions by marking deleted records.
 
 ### Load Data
 #### Load Data into BigQuery
+**Code: load_to_bigquery**
 ```python
-from mage_ai.data_preparation.decorators import loader
-from mage_ai.io.bigquery import BigQuery
-
+# Loads transformed data into BigQuery
 @loader
 def load_to_bigquery(data):
     articles_df, word_counts_df = data
@@ -239,6 +276,7 @@ def load_to_bigquery(data):
             """
             loader.execute(delete_word_counts_query)
 ```
+**Explanation**: This function loads the transformed data into BigQuery and handles deletions by removing corresponding records from BigQuery tables.
 
 ### ETL Pipeline Definition
 #### Mage Pipeline Definition
@@ -264,14 +302,10 @@ To address the challenge of historical data dating back to 2016:
 - Implement an initial bulk load process to load all historical data before starting the incremental ETL process.
 - This involves creating a separate pipeline to handle the initial data load.
 
-### Handling Hard Deletes
-To handle hard deletes where rows are permanently removed from the source database:
-- Use a deletion log table to track deleted articles.
--
-
- Modify the ETL pipeline to account for deletions by extracting data from the deletion log and ensuring these deletions are reflected in BigQuery.
-
 #### Historical Data Pipeline
+To address the challenge of historical data dating back to 2016:
+- **Initial Bulk Load**: Implement an initial bulk load process to load all historical data before starting the incremental ETL process.
+
 ```yaml
 name: etl_historical
 tasks:
@@ -285,12 +319,9 @@ tasks:
     upstream_tasks: [transform_data]
 ```
 
-#### Code for Historical Data Extraction
+**Code: Historical Data Extraction**
 ```python
-from mage_ai.data_preparation.decorators import extractor
-import pandas as pd
-from mage_ai.io.postgres import Postgres
-
+# Extracts all historical data from PostgreSQL
 @extractor
 def extract_historical_data():
     query = "SELECT * FROM articles;"
@@ -298,3 +329,50 @@ def extract_historical_data():
         df = loader.load(query)
     return df
 ```
+**Explanation**: This function extracts all historical data from the PostgreSQL database for the initial bulk load.
+
+### Handling Hard Deletes
+To handle hard deletes where rows are permanently removed from the source database:
+- **Deletion Log Table**: Use a deletion log table to track deleted articles.
+- **Sync Deletions**: Modify the ETL pipeline to account for deletions by extracting data from the deletion log and ensuring these deletions are reflected in BigQuery.
+
+**Code: Transform Data with Deletions**
+```python
+# Transforms data, calculates derived metrics, and handles deletions
+@transformer
+def transform_data(df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
+    df['is_deleted'] = df['deleted_at'].notnull()
+    
+    df['word_count'] = df.apply(lambda row: len(row['content'].split()) if not row['is_deleted'] else 0, axis=1)
+    df['title_length'] = df.apply(lambda row: len(row['title']) if not row['is_deleted'] else 0, axis=1)
+
+    # Extracting date parts
+    df['created_year'] = df['created_at'].dt.year
+    df['created_month'] = df['created_at'].dt.month
+    df['created_day'] = df['created_at'].dt.day
+
+    df['updated_year'] = df['updated_at'].dt.year
+    df['updated_month'] = df['updated_at'].dt.month
+    df['updated_day'] = df['updated_at'].dt.day
+
+    df['published_year'] = df['published_at'].dt.year
+    df['published_month'] = df['published_at'].dt.month
+    df['published_day'] = df['published_at'].dt.day
+
+    word_counts_list = []
+    for idx, row in df.iterrows():
+        if not row['is_deleted']:
+            word_counts = word_count_dict(row['content'])
+            for word, count in word_counts.items():
+                word_counts_list.append({
+                    'article_id': row['id'],
+                    'word': word,
+                    'count': count
+                })
+
+    word_counts_df = pd.DataFrame(word_counts_list)
+
+    return df, word_counts_df
+```
+**Explanation**: This function handles deletions by marking records as deleted and ensuring that deletions are reflected in the transformed data.
+
