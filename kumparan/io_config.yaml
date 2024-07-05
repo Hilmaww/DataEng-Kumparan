@@ -39,10 +39,10 @@ default:
   # Google
   GOOGLE_SERVICE_ACC_KEY:
     type: service_account
-    project_id: data-eng-428408
-    private_key_id: 950b019358658ab508657dd388671e7f86efa590
-    private_key: "-----BEGIN PRIVATE KEY-----\nMIIEvgIBADANBgkqhkiG9w0BAQEFAASCBKgwggSkAgEAAoIBAQCpPm8uM1H9uB0H\nvUy2sTOF7T07j1FddAa8zWyTQzfBrni00hJHgl4vB4kXxE7FPnU932QXfYWktzpH\n/XjhIYLOARqswwi2DSCDq2afewy+skyPGvxN0ml7xTJCiUnIzpL+6NnfD1kv2I0d\nS7MFx8OaMbEQKYyzYs2YIAp2CrdO2PnrW6/BsX9TrWa1H5jroL2SGemxHkVYb1YM\nVvmP7kALVO5VLsdjilerMloMgjQ57fz8jjxee13JH/IaGRdLknCYwuQt1Uj71ByA\nxXbrEELkzmMrEbu4Jr+bjFxjJH9FLfNAbMAKcr+mZLQpl5jjm45d8n4mikRAHsGI\nwq/RAhhLAgMBAAECggEADCTROHjxPKnd12TTYNaFMmpr9t6ZQYHmS9zXmhd8JDcf\nLSZXrm7h0DETurNYzZlmMzrYxUC5+rA1C95ZspnDd4Gnxta1xM5bU2dUlUPwjaxg\nhvIyQWlELV/gc9rDAxgjfwv5OiKxTRgWRBBe9562X9WJ9XVtxZ9kzjIaXg71yT/1\neEf/m4acTQ05f39mbLSR8wseUtUxkuth/t5V0BCbJKmyeRiOj3in+wzp+8WQ26fO\nzqfh4bFbM8mIgnRRkYbbgEGMjouBKFFMLAVPOaEW3wQUKTmgSKGPMJvwBPNpxtEN\nhb89ap7IduPnRxWW/LIQypCY8RT1PDukfRd6c4HM9QKBgQDfjQgj6jZrdrr7F5/Q\nY8EMRf70FYzrrWH/5cdxcqCErAc3dADpKFs7iNInx/Whp0d7lSE79Y6PtCFy/Ude\nq6SnDvc/6lyoDza6ZxRX4V5xN3fNkQN+H9/ftfkN9wjR57PfRM9xEUZy49Hv1OCP\nVNoVDO8uCuNFG4F5MhGOPJ99zQKBgQDBz2Xs7r3bSr/RBfI39j/Z0i9olfWo0QaX\nOAt6zz4KyMm/HHY1jM2/haa4bEKARO31eF+Nl/mFsoc0SWMSihNZR1KUR9Kv55vc\nBtRpYLnEY2KpBR8rspRZ6bSyn6NvnmCp60uyAXbSiOb5oKM3tNw7P64dhjjuQaoQ\nTtq/X0sWdwKBgQCXtCNEDBrmDmqRHtULG8bTx2Rey4kYHk8U0x/ncvxPTFaRYR2F\nHCfdXNoQuPeNvfEagndNMzSNfJX+bLbUHfLck6FiNG6wdbKUCIObp4rpldStIa2X\nF5ZbQChFO9E2cOB1sUJ83lZKfSPodzP00IY2JtLhEe5s5V+VmU6kkatCOQKBgQCa\ndfduoEsxpV5AcTO9BAWZTNk5yiISHBzbkfAcPWTd5W5cYIuZXBFyLUtVOfq6DbV0\naC4HQ/K6ajE1K7PIx8Bp69zVjnRMexMNhWfuYAdNjEPKHunbwqRXEFpR7caso5W4\ndm1Kfb48Rp2Gn07Vi8/lbHgQ0bM3t5+ZBa9yy7ilOwKBgCbHTnxF08dwKveafM42\npMCz+/m1yBeGRE3x4tmi+cvC3YVVBy8PcWGRK8sc5dZuP7Kcn0XJc/rbhofGOiFc\nr3pA+zICNMsrhn0MC6QyZ6lEtxffVQ9troL27eD9hGpkJdz73FeHqb+CVvKA+eWa\n0vQvai5v9pdu6RwkMq0MxWUr\n-----END_PRIVATE_KEY"
-    client_email: for-kumparan@data-eng-428408.iam.gserviceaccount.com
+    project_id: ID
+    private_key_id: ID
+    private_key: "-----BEGIN PRIVATE KEY-----\nKEY\n-----END_PRIVATE_KEY"
+    client_email: serviceAccount@email
     auth_uri: "https://accounts.google.com/o/oauth2/auth"
     token_uri: "https://accounts.google.com/o/oauth2/token"
     auth_provider_x509_cert_url: "https://www.googleapis.com/oauth2/v1/certs"
@@ -84,8 +84,8 @@ default:
   POSTGRES_DBNAME: postgres
   POSTGRES_SCHEMA: public # Optional
   POSTGRES_USER: postgres
-  POSTGRES_PASSWORD: telmat123
-  POSTGRES_HOST: 35.238.112.39
+  POSTGRES_PASSWORD: password
+  POSTGRES_HOST: IP
   POSTGRES_PORT: 5432
   # Qdrant
   QDRANT_COLLECTION: collection
