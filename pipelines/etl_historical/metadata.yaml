@@ -3,7 +3,7 @@ blocks:
   color: yellow
   configuration: {}
   downstream_blocks:
-  - load_historical_data
+  - transform_data
   executor_config: null
   executor_type: local_python
   has_callback: false
@@ -16,21 +16,42 @@ blocks:
   upstream_blocks: []
   uuid: extract_historical_data
 - all_upstream_blocks_executed: false
-  color: yellow
-  configuration: {}
+  color: teal
+  configuration:
+    file_source:
+      path: custom/transform_data.py
+  downstream_blocks:
+  - load_data_py
+  executor_config: null
+  executor_type: local_python
+  has_callback: false
+  language: python
+  name: transform_data
+  retry_config: null
+  status: not_executed
+  timeout: null
+  type: custom
+  upstream_blocks:
+  - extract_historical_data
+  uuid: transform_data
+- all_upstream_blocks_executed: false
+  color: teal
+  configuration:
+    file_source:
+      path: custom/load_data_py.py
   downstream_blocks: []
   executor_config: null
   executor_type: local_python
   has_callback: false
   language: python
-  name: load_historical_data
+  name: load_data_py
   retry_config: null
-  status: updated
+  status: not_executed
   timeout: null
   type: custom
   upstream_blocks:
-  - extract_historical_data
-  uuid: load_historical_data
+  - transform_data
+  uuid: load_data_py
 cache_block_output_in_memory: false
 callbacks: []
 concurrency_config: {}

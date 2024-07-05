@@ -13,10 +13,31 @@ def load_to_bigquery(df):
     articles_df, word_counts_df = df
     articles_table_id = 'data-eng-428408.Kumparan.articles'
     word_counts_table_id = 'data-eng-428408.Kumparan.word_counts'
+    
     config_path = path.join(get_repo_path(), 'io_config.yaml')
     config_profile = 'default'
+    
     with BigQuery.with_config(ConfigFileLoader(config_path, config_profile)) as loader:
-        loader.export(df, table_id)
+        # Load articles
+        loader.export(articles_df, articles_table_id)
+
+        # Load word counts
+        loader.export(word_counts_df, word_counts_table_id)
+        
+        # Handle deletions in BigQuery
+        deleted_ids = articles_df[articles_df['is_deleted']]['id'].tolist()
+        if deleted_ids:
+            delete_query = f"""
+                DELETE FROM `{articles_table_id}`
+                WHERE id IN UNNEST({deleted_ids})
+            """
+            loader.execute(delete_query)
+
+            delete_word_counts_query = f"""
+                DELETE FROM `{word_counts_table_id}`
+                WHERE article_id IN UNNEST({deleted_ids})
+            """
+            loader.execute(delete_word_counts_query)
 
 
 

@@ -9,6 +9,7 @@ from mage_ai.io.config import ConfigFileLoader
 
 @custom
 def extract_historical_data():
+    # do the bulk Query
     query = "SELECT * FROM articles;"
     config_path = path.join(get_repo_path(), 'io_config.yaml')
     config_profile = 'default'

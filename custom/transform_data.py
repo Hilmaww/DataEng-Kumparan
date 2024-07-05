@@ -8,28 +8,30 @@ import pandas as pd
 from collections import Counter
 
 def word_count_dict(text):
+    if not text:
+        return {}
     words = text.split()
     word_counts = Counter(words)
     return dict(word_counts)
 
-@custom
-def transform_data(df: pd.DataFrame):
-    # Additional transformations
-    df['word_count'] = df['content'].apply(lambda x: len(x.split()))
-    df['title_length'] = df['title'].apply(lambda x: len(x))
+@transformer
+def transform_data(df: pd.DataFrame) -> (pd.DataFrame, pd.DataFrame):
+    # Handle deletions
     df['is_deleted'] = df['deleted_at'].notnull()
+    
+    # Only calculate word count for non-deleted rows
+    df['word_count'] = df.apply(lambda row: len(row['content'].split()) if not row['is_deleted'] else 0, axis=1)
+    df['title_length'] = df.apply(lambda row: len(row['title']) if not row['is_deleted'] else 0, axis=1)
 
-    # Extracting date parts for created_at
+    # Extracting date parts
     df['created_year'] = df['created_at'].dt.year
     df['created_month'] = df['created_at'].dt.month
     df['created_day'] = df['created_at'].dt.day
 
-    # Extracting date parts for updated_at
     df['updated_year'] = df['updated_at'].dt.year
     df['updated_month'] = df['updated_at'].dt.month
     df['updated_day'] = df['updated_at'].dt.day
 
-    # Extracting date parts for published_at
     df['published_year'] = df['published_at'].dt.year
     df['published_month'] = df['published_at'].dt.month
     df['published_day'] = df['published_at'].dt.day
@@ -37,13 +39,14 @@ def transform_data(df: pd.DataFrame):
     # Word count transformation
     word_counts_list = []
     for idx, row in df.iterrows():
-        word_counts = word_count_dict(row['content'])
-        for word, count in word_counts.items():
-            word_counts_list.append({
-                'article_id': row['id'],
-                'word': word,
-                'count': count
-            })
+        if not row['is_deleted']:
+            word_counts = word_count_dict(row['content'])
+            for word, count in word_counts.items():
+                word_counts_list.append({
+                    'article_id': row['id'],
+                    'word': word,
+                    'count': count
+                })
 
     word_counts_df = pd.DataFrame(word_counts_list)
 

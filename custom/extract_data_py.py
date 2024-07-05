@@ -10,7 +10,14 @@ from mage_ai.io.config import ConfigFileLoader
 
 @custom
 def extract_from_postgres():
-    query = "SELECT * FROM articles WHERE updated_at > NOW() - INTERVAL '1 hour' OR deleted_at IS NOT NULL;"
+    # Modify the extraction and loading steps to handle deletions.
+    query = """
+        SELECT * FROM articles WHERE updated_at > NOW() - INTERVAL '1 hour'
+        UNION ALL
+        SELECT id, NULL AS title, NULL AS content, NULL AS published_at, NULL AS author_id,
+               NULL AS created_at, NULL AS updated_at, deleted_at
+        FROM deleted_articles_log WHERE deleted_at > NOW() - INTERVAL '1 hour';
+    """
     config_path = path.join(get_repo_path(), 'io_config.yaml')
     config_profile = 'default'
     with Postgres.with_config(ConfigFileLoader(config_path, config_profile)) as loader:
